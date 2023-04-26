@@ -47,12 +47,6 @@
         <property name="nodeService">
             <ref bean="NodeService" />
         </property>
-<!--         <property name="contentService">
-            <ref bean="ContentService" />
-        </property>
-        <property name="authService">
-            <ref bean="AuthenticationService" />
-        </property>
- -->        
+     
    	</bean>
 </beans>

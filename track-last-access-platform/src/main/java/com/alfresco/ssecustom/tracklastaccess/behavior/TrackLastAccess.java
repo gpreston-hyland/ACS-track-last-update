@@ -4,25 +4,30 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 
 import org.alfresco.repo.content.ContentServicePolicies;
 import org.alfresco.repo.node.NodeServicePolicies;
-import org.alfresco.repo.policy.Behaviour;
+//import org.alfresco.repo.policy.Behaviour;
 import org.alfresco.repo.policy.Behaviour.NotificationFrequency;
 import org.alfresco.repo.policy.JavaBehaviour;
 import org.alfresco.repo.policy.PolicyComponent;
+import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
 //import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.security.AuthenticationService;
-import org.alfresco.service.cmr.repository.ContentData;
-import org.alfresco.service.cmr.repository.ContentService;
+//import org.alfresco.service.cmr.repository.ContentData;
+//import org.alfresco.service.cmr.repository.ContentService;
 //import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 //import org.alfresco.service.namespace.NamespaceService;
-import org.alfresco.service.cmr.security.PersonService;
-import org.alfresco.service.namespace.NamespaceService;
+//import org.alfresco.service.cmr.security.PersonService;
+//import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
+import org.alfresco.util.transaction.TransactionListener;
+import org.alfresco.util.transaction.TransactionListenerAdapter;
 import org.apache.log4j.Logger;
 
 import com.alfresco.ssecustom.tracklastaccess.model.TrackLastAccessModel;
@@ -41,8 +46,9 @@ public class TrackLastAccess
 	private ServiceRegistry serviceRegistry;
 	private PolicyComponent policyComponent;
 	private NodeService nodeService;
-	private ContentService contentService;
-//	private AuthenticationService authService;
+	private TransactionListener transactionListener;
+	
+	private static final String KEY_RELATED_NODES = ContentReadTransactionListener.class.getName() + ".relatedNodes";
 		
 	private QName trkacc = QName.createQName(TrackLastAccessModel.NAMESPACE_SSE_TRACK_LAST_ACCESS_CONTENT_MODEL, TrackLastAccessModel.ASPECT_TRKACC_TRACKACCESS);
 	private QName accOn = QName.createQName(TrackLastAccessModel.NAMESPACE_SSE_TRACK_LAST_ACCESS_CONTENT_MODEL,	TrackLastAccessModel.PROP_ACCESSED_ON);
@@ -61,15 +67,13 @@ public class TrackLastAccess
 
 		this.policyComponent.bindClassBehaviour(NodeServicePolicies.OnUpdatePropertiesPolicy.QNAME,
 				trkacc, 
-				new JavaBehaviour(this,"onUpdateProperties", NotificationFrequency.EVERY_EVENT));
-
-//		this.policyComponent.bindClassBehaviour(NodeServicePolicies.OnUpdateNodePolicy.QNAME,
-//				this, 
-//				new JavaBehaviour(this,"onUpdateNode", NotificationFrequency.TRANSACTION_COMMIT));
+				new JavaBehaviour(this,"onUpdateProperties", NotificationFrequency.TRANSACTION_COMMIT));
 
 		this.policyComponent.bindClassBehaviour(NodeServicePolicies.OnRemoveAspectPolicy.QNAME,
 				this, 
 				new JavaBehaviour(this,"onRemoveAspect", NotificationFrequency.TRANSACTION_COMMIT));
+		
+		this.transactionListener = new ContentReadTransactionListener();
 
 	}
 	
@@ -77,18 +81,25 @@ public class TrackLastAccess
 	public void onContentRead(NodeRef noderef) {
 		
 		logger.debug("**** Inside onContentRead");
-		
-		try {
-			if (noderef != null) {
-				logger.debug(noderef);	
-				updateTrackAccessAspect(noderef);
-			}
-		} catch (Exception e) {
-			return;
-		}
-		
-	}	
+        
+		// Bind listener to current transaction
+        AlfrescoTransactionSupport.bindListener(transactionListener);
+        
+        List<NodeRef> nodes = new ArrayList<NodeRef>();
+        nodes.add(noderef);
+       
+        // Transactions involving several nodes need resource updating
+        List<NodeRef> existingNodes = AlfrescoTransactionSupport.getResource(KEY_RELATED_NODES);
+        if (existingNodes == null) {
+            existingNodes = nodes;
+        } else {
+            existingNodes.addAll(nodes);
+        }
 
+        // Put resources to be used in transaction listener
+        AlfrescoTransactionSupport.bindResource(KEY_RELATED_NODES, existingNodes);
+        
+	}	
 
 	@Override
 	public void onAddAspect(NodeRef noderef, QName aspectTypeQName) {
@@ -107,18 +118,6 @@ public class TrackLastAccess
 
 		
 	}
-	
-//	@Override
-//	public void onUpdateNode(NodeRef noderef) {
-//		
-//		logger.debug("**** Inside onUpdateNode (" + noderef.getId().toString() +") -- nodeType:" + nodeService.getType(noderef).getLocalName());
-//		printPropMap("Properties", nodeService.getProperties(noderef));
-//		if (nodeService != null && nodeService.hasAspect(noderef, trkacc)) {
-//			logger.debug("**** Inside onUpdateNode (" + noderef.getId().toString() +") -- nodeType:" + nodeService.getType(noderef).getLocalName());
-//			updateTrackAccessAspect(noderef);
-//		}
-//		
-//	}
 
 	//Aspect Removal doesn't fire the onUpdateNode event
 	@Override
@@ -142,14 +141,14 @@ public class TrackLastAccess
 	public void onUpdateProperties(NodeRef noderef, Map<QName, Serializable> before, Map<QName, Serializable> after) {
 
 		logger.debug("**** Inside onUpdateProperties");
-//		printPropMap("Before", before);
-//		printPropMap("After", after);
 		
 		try {
 			Map<QName, Serializable> diff = mapDiff(before,after);
 			printPropMap("Updated",diff);
 			if(!(diff.containsKey(accOn) || diff.containsKey(accBy))) {
 				updateTrackAccessAspect(noderef);
+			} else {
+				logger.debug("====== No updates");
 			}
 		} catch (Exception e) {
 
@@ -193,9 +192,6 @@ public class TrackLastAccess
 		logger.debug("**** Inside printPropMap ** " + nameStr + " **");
 		
 		for (var entry:map.entrySet()) {
-//			Serializable s = entry.getValue();
-//			logger.debug(s.getClass());
-//			logger.debug(entry.getValue().getClass());
 			logger.debug("**** -- " + entry.getKey().getLocalName() + ":" + entry.getValue());
 		}
 	}
@@ -215,6 +211,7 @@ public class TrackLastAccess
 				newprops.put(accOn,new Date());
 				
 				nodeService.setProperties(noderef, newprops);
+				logger.debug("======= Props Updated");
 			} catch (Exception e) {
 				logger.debug("************* Error: " + e.getMessage());
 			}
@@ -239,11 +236,43 @@ public class TrackLastAccess
 				}
 			}
 		} catch(Exception e) {
+			// Ignore errors - non-user access (solr, etc) is on different thread & doesn't have security context & getCurrentUser name fails
 //			logger.debug(e.getMessage());
 		}
 		return username;
 	}
 
+	//******************************************************
+	//
+	//**************** Transactional Class for onContent Read
+	//
+	//******************************************************
+
+	private class ContentReadTransactionListener
+		extends TransactionListenerAdapter implements TransactionListener {
+		
+	
+		@Override
+		public void afterCommit() {
+			logger.debug("**** In afterCommit");
+			
+			List<NodeRef> nodes = AlfrescoTransactionSupport.getResource(KEY_RELATED_NODES);
+			
+			for (NodeRef noderef:nodes) {
+				try {
+					if (noderef != null) {
+						logger.debug(noderef);	
+						updateTrackAccessAspect(noderef);
+					}
+				} catch (Exception e) {
+					logger.debug(e.getMessage());
+				}
+			}	
+			
+		}
+		
+	}
+	
 	//******************************************************
 	//
 	//**************** Getters & Setters
@@ -274,28 +303,5 @@ public class TrackLastAccess
 	public void setServiceRegistry(ServiceRegistry serviceRegistry) {
 		this.serviceRegistry = serviceRegistry;
 	}
-
-	public ContentService getContentService() {
-		return contentService;
-	}
-
-	public void setContentService(ContentService contentService) {
-		this.contentService = contentService;
-	}
-
-
-//	public AuthenticationService getAuthService() {
-//		return authService;
-//	}
-//
-//	public void setAuthService(AuthenticationService authService) {
-//		logger.debug("****************************************************** In setAuthenticationService:" + authService.getCurrentTicket().toString());
-//		this.authService = authService;
-//	}
-
-
-
-
-
 
 }
