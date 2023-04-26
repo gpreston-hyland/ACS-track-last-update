@@ -19,8 +19,8 @@
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans
           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
-	<bean id="webscript.alfresco.tutorials.helloworld.get"
+<!-- 	<bean id="webscript.alfresco.tutorials.helloworld.get"
 		  class="com.alfresco.sse.track_last_access.platformsample.HelloWorldWebScript"
 		  parent="webscript">
 	</bean>
-</beans>
+ --></beans>

@@ -44,7 +44,7 @@ services:
     volumes:
       - track-last-access-db-volume:/var/lib/postgresql/data
   track-last-access-ass:
-    image: alfresco/alfresco-search-services:2.0.3
+    image: alfresco/alfresco-search-services:2.0.5
     environment:
       SOLR_ALFRESCO_HOST: track-last-access-acs
       SOLR_ALFRESCO_PORT: 8080
@@ -59,7 +59,7 @@ services:
       - track-last-access-ass-volume:/opt/alfresco-search-services/contentstore
       - track-last-access-ass-volume:/opt/alfresco-search-services/data
   track-last-access-activemq:
-      image: alfresco/alfresco-activemq:5.16.1
+      image: alfresco/alfresco-activemq:5.17.4-jre17-rockylinux8
       mem_limit: 1g
       ports:
         - 8161:8161 # Web Console

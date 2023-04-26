@@ -1,3 +1,10 @@
+# Track Last Access
+The `cm:accessed` property in the cm:ContentModel is used with Versions and Records Management. It isn't maintained otherwise. This AMP implements the Track Last Access aspect `trkacc:trackAccess` with a custom behavior to update the Accessed On and Accessed By properties for a document.
+
+
+
+
+
 # Alfresco AIO Project - SDK 4.5
 
 This is an All-In-One (AIO) project for Alfresco SDK 4.5.
