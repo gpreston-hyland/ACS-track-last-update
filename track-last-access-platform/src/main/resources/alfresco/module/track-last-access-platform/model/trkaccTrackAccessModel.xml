@@ -21,14 +21,14 @@
     </namespaces>
 	<data-types/>
 	<constraints/>
-	<types/>
-    <aspects>
+    <types>
         <!-- A document can have security classification applied and
              faceted search is specifically enabled for best performance and we change
              default index config to not tokenize the value. -->
-        <aspect name="trkacc:trackAccess">
-            <title>Track Last Access</title>
+        <type name="trkacc:lastAccessData">
+            <title>Last Access Data</title>
             <description>Track the last access date-time and user.</description>
+            <parent>sys:base</parent>
             <properties>
                 <property name="trkacc:accessedBy">
                 	<title>Accessed By</title>
@@ -51,7 +51,26 @@
                     </index>
                 </property>
             </properties>
-        </aspect>
+        </type>
+    </types>
+    <aspects>
+    	<aspect name="trkacc:trackAccess">
+    		<title>Track Last Access</title>
+    		<associations>
+    			<child-association name="trkacc:accessDataAssoc">
+    				<title>Access Data Association</title>
+    				<source>
+    					<mandatory>true</mandatory>
+    					<many>false</many>
+   					</source>
+   					<target>
+						<class>trkacc:lastAccessData</class>
+    					<mandatory>true</mandatory>
+    					<many>false</many>
+   					</target>
+    			</child-association>
+    		</associations>
+    	</aspect>
     </aspects>
 
 </model>

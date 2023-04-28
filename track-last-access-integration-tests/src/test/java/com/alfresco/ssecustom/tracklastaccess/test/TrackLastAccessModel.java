@@ -1,8 +1,9 @@
-package com.alfresco.ssecustom.tracklastaccess.model;
+package com.alfresco.ssecustom.tracklastaccess.test;
 
 public interface TrackLastAccessModel {
+	
 	// Namespaces
-	public static final String NAMESPACE_SSE_TRACK_LAST_ACCESS_CONTENT_MODEL = "{http://www.alfresco.com/model/ssecustom/content/1.0}";
+	public static final String NAMESPACE_SSE_TRACK_LAST_ACCESS_CONTENT_MODEL = "http://www.alfresco.com/model/ssecustom/content/1.0";
 	public static final String NAME_SSE_TRACK_LAST_ACCESS_CONTENT_MODEL = "trackLastAccess";
 		
 	// Types
