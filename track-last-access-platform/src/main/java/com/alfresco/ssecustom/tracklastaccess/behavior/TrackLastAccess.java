@@ -1,11 +1,11 @@
 package com.alfresco.ssecustom.tracklastaccess.behavior;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
-import java.util.ArrayList;
 
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.ContentServicePolicies;
@@ -41,9 +41,9 @@ public class TrackLastAccess
 	private ServiceRegistry serviceRegistry;
 	private PolicyComponent policyComponent;
 	private NodeService nodeService;
-//	private TransactionListener transactionListener;
+	private TransactionListener transactionListener;
 	
-//	private static final String KEY_RELATED_NODES = ContentReadTransactionListener.class.getName() + ".relatedNodes";
+	private static final String KEY_RELATED_NODES = ContentReadTransactionListener.class.getName() + ".relatedNodes";
 	private static final String ASSN_DATA_NODE_NAME = "AccessData";
 		
 	private QName trkaccASP = createQName(TrackLastAccessModel.ASPECT_TRKACC_TRACKACCESS);
@@ -80,7 +80,7 @@ public class TrackLastAccess
 				new JavaBehaviour(this,"onUpdateProperties", NotificationFrequency.TRANSACTION_COMMIT));
 
 		//
-//		this.transactionListener = new ContentReadTransactionListener();
+		this.transactionListener = new ContentReadTransactionListener();
 
 	}
 	
@@ -162,24 +162,24 @@ public class TrackLastAccess
 	public void onContentRead(NodeRef noderef) {
 		
 		logger.debug("**** Inside onContentRead");
-		updateTrackAccessAspect(noderef);
+//		updateTrackAccessAspect(noderef);
         
-//		// Bind listener to current transaction
-//        AlfrescoTransactionSupport.bindListener(transactionListener);
-//        
-//        List<NodeRef> nodes = new ArrayList<NodeRef>();
-//        nodes.add(noderef);
-//       
-//        // Transactions involving several nodes need resource updating
-//        List<NodeRef> existingNodes = AlfrescoTransactionSupport.getResource(KEY_RELATED_NODES);
-//        if (existingNodes == null) {
-//            existingNodes = nodes;
-//        } else {
-//            existingNodes.addAll(nodes);
-//        }
-//
-//        // Put resources to be used in transaction listener
-//        AlfrescoTransactionSupport.bindResource(KEY_RELATED_NODES, existingNodes);
+		// Bind listener to current transaction
+        AlfrescoTransactionSupport.bindListener(transactionListener);
+        
+        List<NodeRef> nodes = new ArrayList<NodeRef>();
+        nodes.add(noderef);
+       
+        // Transactions involving several nodes need resource updating
+        List<NodeRef> existingNodes = AlfrescoTransactionSupport.getResource(KEY_RELATED_NODES);
+        if (existingNodes == null) {
+            existingNodes = nodes;
+        } else {
+            existingNodes.addAll(nodes);
+        }
+
+        // Put resources to be used in transaction listener
+        AlfrescoTransactionSupport.bindResource(KEY_RELATED_NODES, existingNodes);
         
 	}	
 
@@ -236,7 +236,7 @@ public class TrackLastAccess
 		}
 	}
 
-	private NodeRef getDataNode(NodeRef noderef) {
+	private NodeRef getDataNode(NodeRef noderef) throws Exception {
 		NodeRef n = null;
 		
 		logger.debug("**** In getDataNode");
@@ -244,13 +244,13 @@ public class TrackLastAccess
 			List<ChildAssociationRef> children = nodeService.getChildAssocs(noderef);
 			
 			for (ChildAssociationRef child : children) {
-				logger.debug("****** child:" + child.getTypeQName().getLocalName());
+//				logger.debug("****** child:" + child.getTypeQName().getLocalName());
 				if(child.getTypeQName().isMatch(trkaccASSN)) {
 					return child.getChildRef();
 				}
 			}
 		} catch (Exception e) {
-			logger.debug(e.getMessage());
+			throw e;
 		}
 		
 		return n;
@@ -287,22 +287,23 @@ public class TrackLastAccess
 //        return parentChildAssocRef.getChildRef();
 //    }
     
-    /**
-     * Get the node reference for the /Company Home top folder in Alfresco.
-     * Use the standard node locator service.
-     *
-     * @return the node reference for /Company Home
-     */
-    private NodeRef getCompanyHomeNodeRef() {
-        return serviceRegistry.getNodeLocatorService().getNode(CompanyHomeNodeLocator.NAME, null, null);
-    }
+//    /**
+//     * Get the node reference for the /Company Home top folder in Alfresco.
+//     * Use the standard node locator service.
+//     *
+//     * @return the node reference for /Company Home
+//     */
+//    private NodeRef getCompanyHomeNodeRef() {
+//        return serviceRegistry.getNodeLocatorService().getNode(CompanyHomeNodeLocator.NAME, null, null);
+//    }
     
     private String getCurrentUser() {
 		logger.debug("**** Inside getCurrentUser");
 		String username = null;
+
 		// Get services
-		AuthenticationService authService = (AuthenticationService)serviceRegistry.getAuthenticationService();
 		try {
+			AuthenticationService authService = (AuthenticationService)serviceRegistry.getAuthenticationService();
 			if (authService != null) {
 				if (!authService.isCurrentUserTheSystemUser()) {
 					username = authService.getCurrentUserName();
@@ -358,30 +359,30 @@ public class TrackLastAccess
 	//
 	//******************************************************
 
-//	private class ContentReadTransactionListener
-//		extends TransactionListenerAdapter implements TransactionListener {
-//		
-//	
-//		@Override
-//		public void afterCommit() {
-//			logger.debug("**** In afterCommit");
-//			
-//			List<NodeRef> nodes = AlfrescoTransactionSupport.getResource(KEY_RELATED_NODES);
-//			
-//			for (NodeRef noderef:nodes) {
-//				try {
-//					if (noderef != null) {
-//						logger.debug(noderef);	
-//						updateTrackAccessAspect(noderef);
-//					}
-//				} catch (Exception e) {
-//					logger.debug(e.getMessage());
-//				}
-//			}	
-//			
-//		}
-//		
-//	}
+	private class ContentReadTransactionListener
+		extends TransactionListenerAdapter implements TransactionListener {
+		
+	
+		@Override
+		public void afterCommit() {
+			logger.debug("**** In afterCommit");
+			
+			List<NodeRef> nodes = AlfrescoTransactionSupport.getResource(KEY_RELATED_NODES);
+			
+			for (NodeRef noderef:nodes) {
+				try {
+					if (noderef != null) {
+						logger.debug(noderef);	
+						updateTrackAccessAspect(noderef);
+					}
+				} catch (Exception e) {
+					logger.debug(e.getMessage());
+				}
+			}	
+			
+		}
+		
+	}
 	
 	//******************************************************
 	//

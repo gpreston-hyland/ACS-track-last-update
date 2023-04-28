@@ -22,9 +22,6 @@
 	<data-types/>
 	<constraints/>
     <types>
-        <!-- A document can have security classification applied and
-             faceted search is specifically enabled for best performance and we change
-             default index config to not tokenize the value. -->
         <type name="trkacc:lastAccessData">
             <title>Last Access Data</title>
             <description>Track the last access date-time and user.</description>

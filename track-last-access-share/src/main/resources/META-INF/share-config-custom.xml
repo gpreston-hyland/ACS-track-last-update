@@ -26,22 +26,45 @@
             <removeable> <!-- defaults to visible config -->
             </removeable>
         </aspects>
+        <types>
+        	<type name="sys:base">
+        		<subtype name="trkacc:lastAccessData" />
+        	</type>
+        </types>
     </config>
 
 	<config evaluator="aspect" condition="trkacc:trackAccess">
+
 		<forms>
 			<form>
 				<field-visibility>
-					<show id="trkacc:accessedBy" />
-					<show id="trkacc:accessedOn" />
-				</field-visibility>
+ 					<show id="trkacc:lastAccessData" />
+ 				</field-visibility>
 				<appearance>
+				
 					<field id="trkacc:accessedBy" label-id="prop.trkacc_accessedBy" read-only="true" />
 					<field id="trkacc:accessedOn" label-id="prop.trkacc_accessedOn" read-only="true" />
+
 				</appearance>
 			</form>
 		</forms>
 	</config>
+	
+ 	<config evaluator="node-type" condition="trkacc:lastAccessData">
+		<forms>
+			<form>
+				<field-visibility>
+ 					<show id="trkacc:accessedBy" force="true"  />
+					<show id="trkacc:accessedOn" force="true"  />
+ 				</field-visibility>
+				<appearance>
+					<field id="trkacc:accessedBy" label-id="prop.trkacc_accessedBy" read-only="true" />
+					<field id="trkacc:accessedOn" label-id="prop.trkacc_accessedOn" read-only="true" />
+
+				</appearance>
+			</form>
+		</forms>
+	</config> 
 	
     <!--================================================================================================================
           Advanced Search Forms for types
