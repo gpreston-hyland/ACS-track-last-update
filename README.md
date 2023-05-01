@@ -30,5 +30,10 @@ Since aspects may or may not have properties, adding or removing them doesn't tr
 Change the `this` parameter to `trkaccASP`. Save and run the build_start directive. Once the system starts normally and the first run patching completes, change the parameter back to `this`, save, and re-execute the build_start.
 
 ## Still to Do
-I'd like to find a way to display the last access data from the associated node when viewing/editing the parent node's properties. I haven't found the magic for the [share-config-custom.xml](track-last-access-share/src/main/resources/META-INF/share-config-custom.xml).
+- Add Custom Search
+- I'd like to find a way to display the last access data from the associated node when viewing/editing the parent node's properties. I haven't found the magic for the [share-config-custom.xml](track-last-access-share/src/main/resources/META-INF/share-config-custom.xml).
 
+### References
+1. <https://docs.alfresco.com/content-services/latest/develop/sdk/>
+1. <https://ecmarchitect.com/alfresco-developer-series-tutorials/behaviors/tutorial/tutorial.html>
+1. <https://docs.alfresco.com/content-services/latest/develop/repo-ext-points/behavior-policies/>

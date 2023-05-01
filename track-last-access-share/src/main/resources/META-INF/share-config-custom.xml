@@ -26,19 +26,22 @@
             <removeable> <!-- defaults to visible config -->
             </removeable>
         </aspects>
-        <types>
-        	<type name="sys:base">
+        <types/>
+<!--         	<type name="sys:base">
         		<subtype name="trkacc:lastAccessData" />
         	</type>
         </types>
-    </config>
+ -->    </config>
 
 	<config evaluator="aspect" condition="trkacc:trackAccess">
 
-		<forms>
-			<form>
+		<forms />
+		
+<!-- 			<form>
 				<field-visibility>
- 					<show id="trkacc:lastAccessData" />
+ 					<show id="trkacc:accessDataAssoc" />
+ 					<show id="trkacc:accessBy" read-only="true" />
+ 					<show id="trkacc:accessOn" read-only="true" />
  				</field-visibility>
 				<appearance>
 				
@@ -48,14 +51,14 @@
 				</appearance>
 			</form>
 		</forms>
-	</config>
+ -->	</config>
 	
  	<config evaluator="node-type" condition="trkacc:lastAccessData">
 		<forms>
 			<form>
 				<field-visibility>
- 					<show id="trkacc:accessedBy" force="true"  />
-					<show id="trkacc:accessedOn" force="true"  />
+ 					<show id="trkacc:accessedBy" />
+					<show id="trkacc:accessedOn" />
  				</field-visibility>
 				<appearance>
 					<field id="trkacc:accessedBy" label-id="prop.trkacc_accessedBy" read-only="true" />
@@ -66,12 +69,44 @@
 		</forms>
 	</config> 
 	
+ 	<config evaluator="model-type" condition="trkacc:lastAccessData">
+		<forms>
+			<form>
+				<field-visibility>
+ 					<show id="trkacc:accessedBy" />
+					<show id="trkacc:accessedOn" />
+ 				</field-visibility>
+				<appearance>
+					<field id="trkacc:accessedBy" label-id="prop.trkacc_accessedBy" >
+						<control template="/org/alfresco/components/form/controls/textfield.ftl" />
+					</field>
+					<field id="trkacc:accessedOn" label-id="prop.trkacc_accessedOn" >
+						<control template="/org/alfresco/components/form/controls/daterange.ftl" />
+					</field>
+
+				</appearance>
+			</form>
+			<form id="search">
+				<field-visibility>
+ 					<show id="trkacc:accessedBy" />
+					<show id="trkacc:accessedOn" />
+ 				</field-visibility>
+				<appearance>
+					<field id="trkacc:accessedBy" label-id="prop.trkacc_accessedBy" />
+					<field id="trkacc:accessedOn" label-id="prop.trkacc_accessedOn" />
+
+				</appearance>
+			</form>
+		</forms>
+	</config> 
+
     <!--================================================================================================================
           Advanced Search Forms for types
           (search forms for aspects are not available)
       =============================================================================================================-->
 
-<!--     <config evaluator="string-compare" condition="AdvancedSearch" replace="true">
+<!--      <config evaluator="string-compare" condition="AdvancedSearch" replace="true">  -->
+<!--      <config evaluator="string-compare" condition="AdvancedSearch">
         <advanced-search>
             <forms>
                 Standard out-of-the-box types
@@ -80,14 +115,14 @@
                 <form labelId="search.form.label.cm_folder" descriptionId="search.form.desc.cm_folder">cm:folder</form>
 
                 Custom type
-                <form labelId="form.label.advancedsearch.acmeDocument"
-                      descriptionId="form.description.advancedsearch.acmeDocument">acme:document
+                <form labelId="type.trkacc_lastAccessData"
+                	descriptionId="search.form.desc.trkacc_lastAccessData">trkacc:lastAccessData
                 </form>
             </forms>
         </advanced-search>
     </config>
-
- -->    <!--================================================================================================================
+ -->
+     <!--================================================================================================================
          View, Edit, Create, and Search forms for custom types
 
          The following form configurations for the custom types
